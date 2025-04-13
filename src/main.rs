@@ -38,8 +38,17 @@ impl Board {
         }
         false
     }
+
     fn cats(&self) -> bool {
         self.spaces.iter().all(|&c| c != ' ')
+    }
+
+    fn at(&self, index: usize) -> char {
+        self.spaces[index]
+    }
+
+    fn set(&mut self, index: usize, value: char) {
+        self.spaces[index] = value;
     }
 }
 
@@ -64,11 +73,11 @@ fn main() {
             continue;
         }
         let move_index = (move_index - 1) as usize;
-        if board.spaces[move_index] != ' ' {
+        if board.at(move_index) != ' ' {
             println!("Invalid move. Try again.");
             continue;
         }
-        board.spaces[move_index] = if x_turn { 'X' } else { 'O' };
+        board.set(move_index, if x_turn { 'X' } else { 'O' });
         if board.check_winner(if x_turn { 'X' } else { 'O' }) {
             board.print();
             println!("Player {} wins!", if x_turn { 'X' } else { 'O' });
