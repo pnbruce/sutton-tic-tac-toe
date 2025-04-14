@@ -4,9 +4,7 @@ struct Board {
 
 impl Board {
     fn new() -> Self {
-        Board {
-            spaces: [' '; 9],
-        }
+        Board { spaces: [' '; 9] }
     }
 
     fn print(&self) {
@@ -17,7 +15,8 @@ impl Board {
         println!("{}|{}|{}", self.spaces[6], self.spaces[7], self.spaces[8]);
     }
 
-    fn check_winner(&self, player: char) -> bool {
+    fn check_winner(&self, player: &Player) -> bool {
+        let player_char = Player::player_char(player);
         let winning_combinations = [
             [0, 1, 2],
             [3, 4, 5],
@@ -29,9 +28,9 @@ impl Board {
             [2, 4, 6],
         ];
         for combination in winning_combinations.iter() {
-            if self.spaces[combination[0]] == player
-                && self.spaces[combination[1]] == player
-                && self.spaces[combination[2]] == player
+            if self.spaces[combination[0]] == player_char
+                && self.spaces[combination[1]] == player_char
+                && self.spaces[combination[2]] == player_char
             {
                 return true;
             }
@@ -47,20 +46,37 @@ impl Board {
         self.spaces[index]
     }
 
-    fn set(&mut self, index: usize, value: char) {
-        self.spaces[index] = value;
+    fn set(&mut self, index: usize, value: &Player) {
+        let player_char = Player::player_char(value);
+        self.spaces[index] = player_char;
+    }
+}
+
+enum Player {
+    X,
+    O,
+}
+
+impl Player {
+    fn player_char(player: &Player) -> char {
+        match player {
+            Player::X => 'X',
+            Player::O => 'O',
+        }
     }
 }
 
 fn main() {
     let mut board = Board::new();
 
-    let mut x_turn = true;
+    let mut player = Player::X;
     loop {
         board.print();
         let mut input = String::new();
         println!("Enter a number between 1 and 9:");
-        std::io::stdin().read_line(&mut input).expect("Failed to read line");
+        std::io::stdin()
+            .read_line(&mut input)
+            .expect("Failed to read line");
         let move_index: u32 = match input.trim().parse() {
             Ok(num) => num,
             Err(_) => {
@@ -77,10 +93,10 @@ fn main() {
             println!("Invalid move. Try again.");
             continue;
         }
-        board.set(move_index, if x_turn { 'X' } else { 'O' });
-        if board.check_winner(if x_turn { 'X' } else { 'O' }) {
+        board.set(move_index, &player);
+        if board.check_winner(&player) {
             board.print();
-            println!("Player {} wins!", if x_turn { 'X' } else { 'O' });
+            println!("Player {} wins!", Player::player_char(&player));
             break;
         }
         if board.cats() {
@@ -88,11 +104,10 @@ fn main() {
             println!("It's a draw!");
             break;
         }
-        if x_turn {
-            println!("Player X's turn");
-        } else {
-            println!("Player O's turn");
-        }
-        x_turn = !x_turn;
+        println!("Player {}'s turn", Player::player_char(&player));
+        player = match player {
+            Player::X => Player::O,
+            Player::O => Player::X,
+        };
     }
 }
